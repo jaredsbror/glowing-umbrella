@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import os, subprocess
+import re
 
 VOICES = [
     # English (en_GB)
@@ -63,10 +64,250 @@ VOICES = [
 
 
 WORDS_TO_REPLACE = [
-    ("the hell", "the heck"),
-    ("the fuck", "the heck"),
+    ("The hell ", " The heck "),
+    ("The hell! ", " The heck! "),
+    ("The hell? ", " The heck? "),
+    ("The hell, ", " The heck, "),
+
+    ("The fuck ", " The heck "),
+    ("The fuck! ", " The heck! "),
+    ("The fuck? ", " The heck? "),
+    ("The fuck, ", " The heck, "),
+    ("The fucking hell ", " The heck "),
+
+    (" Fuck with ", " Mess with "),
+    (" Fucking with ", " Messing with "),
+    (" Fucking around ", " Messing around "),
+    (" Fucking around, ", " Messing around, "),
+
+    (" Fuck up ", " Mess up "),
+    (" Fuckup ", " Messup "),
+    (" Fuckups ", " Messups "),
+    (" Fucker ", " Mongrel "),
+    (" Fucker! ", " Mongrel! "),
+    (" Fucker, ", " Mongrel, "),
+    (" Fuckers ", " Mongrels "),
+    (" Fuckers! ", " Mongrels! "),
+    (" Fuckers, ", " Mongrels, "),
+    (" Fucking up ", " Messing up "),
+    (" Fuck! ", " Fetch! "),
+    (" Fuck, ", " Fetch, "),
+
+    (" Motherfucker ", " Mongrel "),
+    (" Motherfucker! ", " Mongrel! "),
+    (" Motherfucker, ", " Mongrel, "),
+    (" Motherfuckers ", " Mongrels "),
+    (" Motherfuckers! ", " Mongrels! "),
+    (" Motherfuckers, ", " Mongrels, "),
+    (" Motherfucking ", " Stupid "),
+    (" Motherfucking! ", " Stupid! "),
+    (" Motherfucking, ", " Stupid, "),
+
+    (" God damn it ", " Darnit "),
+    (" God damn it! ", " Darnit! "),
+    (" God damn it, ", " Darnit, "),
+    (" Goddamn it ", " Darnit "),
+    (" Goddamn it! ", " Darnit! "),
+    (" Goddamn it, ", " Darnit, "),
+    (" God damnit ", " Darnit "),
+    (" God damnit! ", " Darnit! "),
+    (" God damnit, ", " Darnit, "),
+    (" Goddamn ", " Darn "),
+    (" Goddamn! ", " Darn! "),
+    (" Goddamn, ", " Darn, "),
+    (" God damn ", " Darn "),
+    (" God damn! ", " Darn! "),
+    (" God damn, ", " Darn, "),
+    (" Damn it ", " Darnit "),
+    (" Damn it! ", " Darnit! "),
+    (" Damn it, ", " Darnit, "),
+    (" Damnit ", " Darnit "),
+    (" Damnit! ", " Darnit! "),
+    (" Damnit, ", " Darnit, "),
+    (" Damn! ", " Fetch! "),
+    (" Damn, ", " Fetch, "),
+    (" Damn ", " Fetch "),
+
+    (" God damm it ", " Darnit "),
+    (" God damm it! ", " Darnit! "),
+    (" God damm it, ", " Darnit, "),
+    (" Goddamm it ", " Darnit "),
+    (" Goddamm it! ", " Darnit! "),
+    (" Goddamm it, ", " Darnit, "),
+    (" God dammit ", " Darnit "),
+    (" God dammit! ", " Darnit! "),
+    (" God dammit, ", " Darnit, "),
+    (" Goddamm ", " Darn "),
+    (" Goddamm! ", " Darn! "),
+    (" Goddamm, ", " Darn, "),
+    (" God damm ", " Darn "),
+    (" God damm! ", " Darn! "),
+    (" God damm, ", " Darn, "),
+    (" Damm it ", " Darnit "),
+    (" Damm it! ", " Darnit! "),
+    (" Damm it, ", " Darnit, "),
+    (" Dammit ", " Darnit "),
+    (" Dammit! ", " Darnit! "),
+    (" Dammit, ", " Darnit, "),
+    (" Damm! ", " Fetch! "),
+    (" Damm, ", " Fetch, "),
+    (" Damm ", " Fetch "),
+
+    (" Bullshit ", " Nonsense "),
+    (" Bullshit! ", " Nonsense! "),
+    (" Bullshit, ", " Nonsense, "),
+    (" Horsehit ", " Nonsense "),
+    (" Horsehit! ", " Nonsense! "),
+    (" Horsehit, ", " Nonsense, "),
+    (" Shitty ", " Trashy "),
+    (" Shitty! ", " Trashy! "),
+    (" Shitty, ", " Trashy, "),
+    (" Shitless ", " Senseless "),
+    (" Shitless! ", " Senseless! "),
+    (" Shitless, ", " Senseless, "),
+    (" Cut the shit ", " Cut the nonsense "),
+    (" Cut the shit! ", " Cut the nonsense! "),
+    (" Cut the shit, ", " Cut the nonsense, "),
+    (" Piece of shit ", " Piece of trash "),
+    (" Piece of shit! ", " Piece of trash! "),
+    (" Piece of shit, ", " Piece of trash, "),
+    (" Shit! ", " Fetch! "),
+    (" Shit, ", " Fetch, "),
+    (" Shithole ", " Trash heap "),
+    (" Shithole! ", " Trash heap! "),
+    (" Shithole, ", " Trash heap, "),
+    (" Take a shit ", " Take a poop "),
+    (" Take a shit! ", " Take a poop! "),
+    (" Take a shit, ", " Take a poop, "),
+
+    (" Crappy ", " Trashy "),
+    (" Crappy! ", " Trashy! "),
+    (" Crappy, ", " Trashy, "),
+    (" Bullcrap ", " Nonsense "),
+    (" Bullcrap! ", " Nonsense! "),
+    (" Bullcrap, ", " Nonsense, "),
+    (" Horsecrap ", " Nonsense "),
+    (" Horsecrap! ", " Nonsense! "),
+    (" Horsecrap, ", " Nonsense, "),
+    (" Crapton ", " Ton "),
+    (" Crapton! ", " Ton! "),
+    (" Crapton, ", " Ton, "),
+    (" Crap ton ", " Ton "),
+    (" Crap ton! ", " Ton! "),
+    (" Crap ton, ", " Ton, "),
+    (" Little crap ", " Scoundrel "),
+    (" Little crap! ", " Scoundrel! "),
+    (" Little crap, ", " Scoundrel, "),
+    (" Cut the crap ", " Cut the Nonsense "),
+    (" Cut the crap! ", " Cut the Nonsense! "),
+    (" Cut the crap, ", " Cut the Nonsense, "),
+    (" Piece of crap ", " Piece of trash "),
+    (" Piece of crap! ", " Piece of trash! "),
+    (" Piece of crap, ", " Piece of trash, "),
+    (" Crap! ", " Fetch! "),
+    (" Crap, ", " Fetch, "),
+    (" Craphole ", " Trash heap "),
+    (" Craphole! ", " Trash heap! "),
+    (" Craphole, ", " Trash heap, "),
+    (" Crapped ", " Pooped "),
+    (" Take a crap ", " Take a poop "),
+    (" Take a crap! ", " Take a poop! "),
+    (" Take a crap, ", " Take a poop, "),
+
+    (" Bastard ", " Mongrel "),
+    (" Bastard! ", " Mongrel! "),
+    (" Bastard, ", " Mongrel, "),
+    (" Bastards ", " Mongrels "),
+    (" Bastards! ", " Mongrels! "),
+    (" Bastards, ", " Mongrels, "),
+
+    (" Retarded ", " Idiotic "),
+    (" Retarded! ", " Idiotic! "),
+    (" Retarded, ", " Idiotic, "),
+    (" Retard ", " Idiot "),
+    (" Retard! ", " Idiot! "),
+    (" Retard, ", " Idiot, "),
+    (" Retards ", " Idiots "),
+    (" Retards! ", " Idiots! "),
+    (" Retards, ", " Idiots, "),
+
+    (" Bitchy ", " Annoying "),
+    (" Bitchy! ", " Annoying! "),
+    (" Bitchy, ", " Annoying, "),
+    (" Bitching ", " Whining "),
+    (" Bitching! ", " Whining! "),
+    (" Bitching, ", " Whining, "),
+    (" Bitch! ", " Shrew! "),
+    (" Bitch, ", " Shrew, "),
+    (" Son of a bitch ", " Scoundrel "),
+    (" Son of a bitch! ", " Scoundrel! "),
+    (" Son of a bitch, ", " Scoundrel, "),
+    (" Sonofabitch ", " Scoundrel "),
+    (" Sonofabitch! ", " Scoundrel! "),
+    (" Sonofabitch, ", " Scoundrel, "),
+
+    (" Asshole ", " Jerk "),
+    (" Asshole! ", " Jerk! "),
+    (" Asshole, ", " Jerk, "),
+    (" Assholes ", " Jerks "),
+    (" Assholes! ", " Jerks! "),
+    (" Assholes, ", " Jerks, "),
+    (" Dumbass ", " Idiot "),
+    (" Dumbass! ", " Idiot! "),
+    (" Dumbass, ", " Idiot, "),
+    (" Dumbasses ", " idiots "),
+    (" Dumbasses! ", " Idiots! "),
+    (" Dumbasses, ", " Idiots, "),
+    (" Pain in the ass ", " Pain in the rear "),
+    (" Pain in the ass! ", " Pain in the rear! "),
+    (" Pain in the ass, ", " Pain in the rear, "),
+    (" Such an ass ", " Such a jerk "),
+    (" Such an ass! ", " Such a jerk! "),
+    (" Such an ass, ", " Such a jerk, "),
+    (" Up his ass ", " Up his rear "),
+    (" Up his ass! ", " Up his rear! "),
+    (" Up his ass, ", " Up his rear, "),
+    (" Up her ass ", " Up her rear "),
+    (" Up her ass! ", " Up her rear! "),
+    (" Up her ass, ", " Up her rear, "),
+    (" Up their ass ", " Up their rear "),
+    (" Up their ass! ", " Up their rear! "),
+    (" Up their ass, ", " Up their rear, "),
+    (" Up our ass ", " Up our rear "),
+    (" Up our ass! ", " Up our rear! "),
+    (" Up our ass, ", " Up our rear, "),
+    (" Up its ass ", " Up its rear "),
+    (" Up its ass! ", " Up its rear! "),
+    (" Up its ass, ", " Up its rear, "),
+    (" Up my ass ", " Up my rear "),
+    (" Up my ass! ", " Up my rear! "),
+    (" Up my ass, ", " Up my rear, "),
+
+    # Piss
+    (" Take a piss ", " Take a pee "),
+    (" Take a piss! ", " Take a pee! "),
+    (" Take a piss, ", " Take a pee, "),
+    (" Pissed off ", " Ticked off "),s
+    (" Pissed off! ", " Ticked off! "),
+    (" Pissed off, ", " Ticked off, "),
+
+    # Dick
+    (" Such a dick ", " Such a jerk "),
+    (" Such a dick! ", " Such a jerk! "),
+    (" Such a dick, ", " Such a jerk, "),
+    (" Be a dick ", " Be a jerk "),
+    (" Be a dick! ", " Be a jerk! "),
+    (" Be a dick, ", " Be a jerk, "),
+    (" Being a dick ", " Being a jerk "),
+    (" Being a dick! ", " Being a jerk! "),
+    (" Being a dick, ", " Being a jerk, "),
+
     # Add more pairs as needed
 ]
+
+    # Context-specific words to not be replace here
+    # (" Piss off", "  "),
+    # (" Pissed", "  "),
 
 def get_project_root(self):
         path = os.path.abspath(os.getcwd())
@@ -122,7 +363,7 @@ class PiperTTSGUI:
         # Convert
         ttk.Button(self.root, text="Convert", command=self.convert_files).grid(row=5, column=0, pady=10)
 
-        # Split File
+        # Split / replace words in text File
         ttk.Label(self.root, text="Text File:").grid(row=6, column=0, padx=5, pady=5)
         self.txt_path = ttk.Entry(self.root, width=50)
         self.txt_path.grid(row=6, column=1, padx=5, pady=5)
@@ -135,8 +376,6 @@ class PiperTTSGUI:
 
         ttk.Button(self.root, text="Split", command=self.split_file).grid(row=8, column=0, pady=10)
         ttk.Button(self.root, text="Replace Words", command=self.replace_phrases_in_file).grid(row=8, column=1, pady=10)
-        ttk.Button(self.root, text="Generate Samples", command=self.generate_samples).grid(row=9, column=0, pady=10)
-
     
 
     def setup_validation(self):
@@ -292,7 +531,6 @@ class PiperTTSGUI:
 
         messagebox.showinfo("Success", f"File split into {files_created} files.")
 
-
     def replace_phrases_in_file(self):
         txt_path = self.txt_path.get()
         if not os.path.isfile(txt_path):
@@ -300,11 +538,19 @@ class PiperTTSGUI:
             return
 
         try:
-            with open(txt_path, "r", encoding="utf-8") as f:
-                text = f.read()
-            # Replace all phrases
+            try:
+                with open(txt_path, "r", encoding="utf-8") as f:
+                    text = f.read()
+            except UnicodeDecodeError:
+                with open(txt_path, "r", encoding="cp1252") as f:
+                    text = f.read()
+
+            # Case-insensitive replacement using regex, with print statements
             for old, new in WORDS_TO_REPLACE:
-                text = text.replace(old, new)
+                pattern = re.compile(re.escape(old), re.IGNORECASE)
+                if pattern.search(text):
+                    print(f"Replace ({old}) with ({new})")
+                text = pattern.sub(new, text)
             # Build output path
             base, ext = os.path.splitext(txt_path)
             if ext.lower() == ".txt":
@@ -316,6 +562,40 @@ class PiperTTSGUI:
             messagebox.showinfo("Success", f"File saved as:\n{out_path}")
         except Exception as e:
             messagebox.showerror("Error", f"Error processing file:\n{e}")
+
+
+    def replace_phrases_in_word_file(self):
+        txt_path = self.txt_path.get()
+        if not os.path.isfile(txt_path):
+            messagebox.showerror("Error", "Selected text file does not exist.")
+            return
+
+        try:
+            try:
+                with open(txt_path, "r", encoding="utf-8") as f:
+                    text = f.read()
+            except UnicodeDecodeError:
+                with open(txt_path, "r", encoding="cp1252") as f:
+                    text = f.read()
+
+            # Case-insensitive replacement using regex, with print statements
+            for old, new in WORDS_TO_REPLACE:
+                pattern = re.compile(re.escape(old), re.IGNORECASE)
+                if pattern.search(text):
+                    print(f"Replace ({old}) with ({new})")
+                text = pattern.sub(new, text)
+            # Build output path
+            base, ext = os.path.splitext(txt_path)
+            if ext.lower() == ".txt":
+                out_path = f"{base}_quick_replace.txt"
+            else:
+                out_path = f"{txt_path}_quick_replace.txt"
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(text)
+            messagebox.showinfo("Success", f"File saved as:\n{out_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error processing file:\n{e}")
+
 
 
     def generate_samples(self):
