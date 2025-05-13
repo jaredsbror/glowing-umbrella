@@ -1055,10 +1055,10 @@ class PiperTTSGUI:
         ttk.Label(self.root, text="Voice:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
         self.voice_combo = ttk.Combobox(
             self.root,
-            values=[v[1] for v in VOICES],  # Combine lang tag and name
+            values=[v[0] for v in VOICES],  # Combine lang tag and name
             state="readonly" # Prevent typing in the combobox
         )
-        self.voice_combo.current(0) # Set default selected voice
+        self.voice_combo.current(1) # Set default selected voice
         self.voice_combo.grid(row=2, column=1, padx=5, pady=5, columnspan=2, sticky="ew") # Span 2 columns
 
         # Speed/Pause
